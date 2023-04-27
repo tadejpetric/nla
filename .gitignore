@@ -3,7 +3,7 @@ cmake-build-debug
 *.tar.gz
 *.mtx
 
-.pdf
+*.pdf
 *.aux
 *.lof
 *.log
