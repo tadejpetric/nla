@@ -1,0 +1,23 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+\begin{document}
+    Naj bo \(U(x,y) = U_{x,y}\) matrika
+    \begin{align*}
+        \Delta u(x,y) = U_{xx} + U_{yy}\\
+        h\cdot U_x = U(x) - U(x+1)\\
+        h^2\cdot U_{xx} = U(x-1, y) - 2U(x,y) + U(x+1,y)\\
+        h^2\cdot U_{yy} = U(x, y-1) - 2U(x,y) + U(x, y+1)
+    \end{align*}
+    Če to damo skupaj, dobimo
+    \begin{align*}
+        \Delta U(x,y) + k(x,y)U(x,y) = 1
+        h^2 = U(x-1,y)+U(x+1,y)+U(x,y-1)+U(x,y+1) + (h^2\cdot k- 4) U(x,y)
+    \end{align*}
+    Tako lahko sestavimo matriko \(T\)
+    \begin{align*}
+        T = \begin{bmatrix}
+        \end{bmatrix}
+    \end{align*}
+
+\end{document}
