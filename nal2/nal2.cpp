@@ -8,6 +8,7 @@
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
+#include <cmath>
 
 
 typedef Eigen::SparseMatrix<double> smatrix;
@@ -26,14 +27,16 @@ void d_lanczos(smatrix& A, Vector<double, n>& x, Vector<double, n>& b) {
 
     double lambda = 0;
     double eta = 0;
+    const int i = 5;
 
-    for (int j = 0; j < 50; ++j) {
-        Vector<double, n> z = A*v_this;
+    for (int j = 0; j < 5000; ++j) {
+
+        Vector<double, n> z = A*v_this - beta_last*v_last;
         double alpha = v_this.dot(z);
-        z = z - alpha*v_this - beta_last*v_last;
+        z = z - alpha*v_this;
 
         beta_this = z.norm();
-        if (j > 1) {
+        if (j >= 1) {
             lambda = beta_last/eta;
         }
         eta = alpha - beta_last*lambda;
@@ -41,20 +44,22 @@ void d_lanczos(smatrix& A, Vector<double, n>& x, Vector<double, n>& b) {
             std::cout << "eta";
             break;
         }
-        if (j > 1) {
+        if (j >= 1) {
             zeta = -lambda * zeta;
         }
         p = (1/eta)*(v_this - beta_last*p);
         x += zeta*p;
-        std::cout << "---\n" << x << "\n---\n";
 
         if (beta_this < 0.00003 && beta_this > -0.00003) {
             std::cout << "beta_this";
             break;
         }
+        if (std::abs(beta_this * zeta/eta) < std::pow(10.,-10.))
+            break;
         v_last = v_this;
         v_this = z/beta_this;
         beta_last = beta_this;
+
     }
 }
 
@@ -82,8 +87,8 @@ int main(int argc, char** argv) {
     smatrix A(i1, i1);
     for (int j = 0; j < i1; ++j) {
         for (int i = 0; i < i1; ++i) {
-            if (i == j) A.insert(i,i) = i+1;
-            //A.insert(i,j) = x1(i,j);
+            //if (i == j) A.insert(i,i) = i+1;
+            A.insert(i,j) = x1(i,j);
         }
     }
     Vector<double, i1> x = Vector<double, i1>::Zero();
