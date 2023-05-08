@@ -5,7 +5,6 @@
 #include "nal2.h"
 #include <iostream>
 #include <limits>
-#include <unsupported/Eigen/SparseExtra>
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 #include <cmath>
