@@ -6,6 +6,7 @@ cmake-build-release
 *.tar.gz
 *.mtx
 *.mat
+*.txt
 
 *.pdf
 *.aux

@@ -9,6 +9,7 @@
 #include <Eigen/Dense>
 #include <cmath>
 
+
 typedef Eigen::SparseMatrix<double> smatrix;
 
 using Eigen::VectorXd;
@@ -34,7 +35,7 @@ public:
         MaxColsAtCompileTime = Eigen::Dynamic,
         IsRowMajor = false
     };
-    implicit_matrix(smatrix& mat) : X(&mat) {}
+    implicit_matrix(smatrix& mat) : X(&mat), alp(1) {}
 
     Index rows() const { return X->rows(); }
     Index cols() const { return X->rows(); }
@@ -44,31 +45,67 @@ public:
         return (1- alp) *  ((*X) * (X->transpose() * x)) + alp * x;
 
     }
+
     double alp;
     const smatrix *X;
 };
-namespace Eigen {
-    namespace internal {
-        template <>
-        struct generic_product_impl<implicit_matrix, VectorXd, SparseShape, DenseShape, GemvProduct>
-                : generic_product_impl_base<implicit_matrix,VectorXd,generic_product_impl<implicit_matrix,VectorXd> >
-        {
-            typedef typename Product<implicit_matrix,VectorXd>::Scalar Scalar;
 
-            template<typename Dest>
-            static void scaleAndAddTo(Dest& dst, const implicit_matrix& lhs, const VectorXd& rhs, const Scalar& alpha)
-            {
-                dst += alpha * lhs.alp*rhs;
-                VectorXd y = lhs.X->transpose() * rhs;
-                dst += alpha * (1-lhs.alp) *  (*(lhs.X) * y);
-            }
-        };
-    }
+double residue(implicit_matrix& A, VectorXd& x, VectorXd& b) {
+    return (*A.X * (A.X->transpose() * x) - b).norm();
 }
 
 
+auto convergence_speed(implicit_matrix& A, VectorXd b, int steps=100)
+-> std::tuple<std::vector<std::tuple<float, int>>, std::vector<std::tuple<float, float>>> {
+    A.alp = 0;
+    Eigen::ConjugateGradient<implicit_matrix, Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> cg;
+    //cg.setTolerance(1E-5);
+    std::vector<std::tuple<float, int>> iters_list;
+    std::vector<std::tuple<float, float>> acc_list;
 
-int main() {
+    for (int i = 1; i < steps; ++i) {
+
+        A.alp = i/(steps-1.);
+        cg.compute(A);
+        VectorXd novel = cg.solve(b);
+        //std::cout << "iter " << i << " " << cg.iterations() << "\n";
+        std::tuple<float, int> el = {i/(steps-1.), cg.iterations()};
+        iters_list.emplace_back(el);
+
+        std::tuple<float, float> el2 = {i/(steps-1.),residue(A, novel, b)};
+        acc_list.emplace_back(el2);
+    }
+    return std::make_tuple(iters_list, acc_list);
+}
+
+
+void save_full_matrix(implicit_matrix&A, smatrix& test, const char* file){
+    std::ofstream {file};
+    std::ofstream out(file, std::fstream::out | std::fstream::app);
+
+    Eigen::ConjugateGradient<implicit_matrix, Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> cg;
+    cg.compute(A);
+    cg.setTolerance(1E-5);
+    for (int i = 0; i < 500; ++i) {
+        //std::cout << "col " << i;
+        VectorXd result = cg.solve(test.col(i));
+        result = test.transpose() * result;
+        for (double el : result) {
+            out << el << " ";
+        }
+        out << "\n";
+    }
+    out.close();
+}
+
+int main(int argc, char** argv) {
+    std::string filename;
+    if (argc <= 1) {
+        filename = ".";
+    }
+    else {
+        filename = argv[1];
+    }
     // vpsina 2010
     const int V = 4*2*0 + 1*0; // my project is not solvable in matlab, because it is 1-indexed
 
@@ -79,21 +116,21 @@ int main() {
     //smatrix test(5, 5);
     //test.setIdentity();
     Eigen::ConjugateGradient<implicit_matrix, Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> cg;
-    cg.setTolerance(0.000001);
-    implicit_matrix A(test);
-    A.alp = 1;
+    cg.setTolerance(1E-10);
+    implicit_matrix A(train);
 
-    VectorXd v = VectorXd::Random(20489);
-    cg.compute(A);
-    VectorXd x = cg.solve(v);
-    std::cout << v;
-    std::cout << "\n-\n" << x;
+    std::cout << "Writing charts for best alpha\n";
+    auto timer = start();
+    auto [chart_iter, chart_acc] = convergence_speed(A, test.col(V));
+    stop(timer);
+    save_chart(chart_iter, (filename+"iters.txt").c_str());
+    save_chart(chart_acc, (filename+"alpha.txt").c_str());
+    std::cout << "\n";
 
-    Eigen::MatrixXd all(20489, 2);
-    all.col(0) = x;
-    all.col(1) = y;
-    std::cout << all;
-
-
-
+    // I determined that alpha=0.6 is a good compromise
+    std::cout << "saving matrix\n";
+    A.alp = 0.6;
+    timer = start();
+    save_full_matrix(A, test, (filename+"matrix.txt").c_str());
+    stop(timer);
 }
