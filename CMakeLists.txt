@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(nla)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -fopenmp -O3")
 
 include_directories("/home/user/programming/eigen")
+set(EIGEN_DIR "/home/user/programming/eigen")
 
 add_executable(nla main.cpp)
 add_executable(nla_mehurcek "nla_mehurcek/nla_mehurcek.cpp")
@@ -17,8 +18,8 @@ add_executable(nal3 "nal3/nal3.cpp" nal3/nal3.h)
 add_executable(nal4 "nal4/nal4.cpp" nal4/nal4.h)
 
 
-message(NOTICE ../${CMAKE_CURRENT_SOURCE_DIR})
-
+#target_include_directories(nal4 PRIVATE ${EIGEN_DIR})
+#target_link_libraries(nal4 )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

@@ -80,8 +80,7 @@ auto convergence_speed(implicit_matrix& A, VectorXd b, int steps=100)
 
 
 void save_full_matrix(implicit_matrix&A, smatrix& test, const char* file){
-    std::ofstream {file};
-    std::ofstream out(file, std::fstream::out | std::fstream::app);
+    std::ofstream out(file);
 
     Eigen::ConjugateGradient<implicit_matrix, Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> cg;
     cg.compute(A);

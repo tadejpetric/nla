@@ -2,6 +2,8 @@
 cmake-build-debug
 */cmage-build-release/
 cmake-build-release
+*/include/
+include
 
 *.tar.gz
 *.mtx

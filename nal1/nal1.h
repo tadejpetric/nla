@@ -10,7 +10,9 @@ struct area {
     const int k;
 
     // step_width2 is square of step width
-    // h = 2/(divisions-1). -1 because [-1,1], not [-1,1)
+    // h = 2/(divisions+1). -1 because (-1,1) not [-1,1)
+    // eg if we have 3 divisions, -> {-0.5, 0, 0.5}
+    //              i = 0 -> -0.5,    i = 2 -> 0.5
     const double step_width2;
 
     area(const int divisions, const int k) : divisions(divisions),
@@ -18,11 +20,11 @@ struct area {
                                              step_width2(4./((divisions-1)*(divisions-1))) {}
 
     double itoc(const int i) const {
-        return i*2./(divisions-1) -1;
+        return (i+1)*2./(divisions+1) -1;
     }
 
     int ctoi(const double x) const {
-        return std::lround((x+1)*(divisions-1)/2.);
+        return std::lround((x+1)*(divisions+1)/2. - 1);
     }
 
     double penalty(int i, int j) const {

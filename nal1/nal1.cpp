@@ -58,6 +58,8 @@ void solve_system(smatrix& mat, Eigen::Vector<double, n*n>& x, Eigen::Vector<dou
 
 int main() {
     const int n = 101;
+    area s(101, 1234);
+    std::cout << s.ctoi(s.itoc(74));
     area omega(n, 100);
     smatrix mat(n*n,n*n);
     Eigen::Vector<double, n*n> b;
