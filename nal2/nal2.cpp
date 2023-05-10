@@ -36,14 +36,15 @@ void first_iter(smatrix& A, VectorXd& p, double& alpha, double& beta, VectorXd& 
 void second_iter(smatrix& A,
                  VectorXd& p_this,
                  VectorXd& p_last,
-                 double& alpha, double& beta, double& zeta,
+                 double& alpha, double& beta, double& zeta, double& cx, double& sx,
                  VectorXd& v_this,
                  VectorXd& v_last,
                  Vector3d& col) {
 
     VectorXd z = A*v_this - beta*v_last;
     auto [c, s] = givens(alpha, beta);
-
+    cx = c;
+    sx = s;
     alpha = v_this.dot(z);
     z = z - alpha*v_this;
 
@@ -53,7 +54,7 @@ void second_iter(smatrix& A,
 
     beta = z.norm();
 
-    zeta *= s/c;
+    zeta *= s;
 
     col(0) = -s*beta;
     col(1) =  c*beta;
@@ -72,22 +73,25 @@ void qr_d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
     double alpha_last, beta_last;
     double alpha_this, beta_this;
     double zeta = r.norm();
+    double chi;
+
 
     Vector3d last_col = Vector3d::Zero();
 
 
     // compute first manually
     first_iter(A, p_k2, alpha_last, beta_last, v_this, v_last);
-    x += zeta*p_k2;
+
     if (small(beta_last)) return;
     std::cout << x;
-    second_iter(A, p_k1, p_k2, alpha_last, beta_last, zeta, v_this, v_last, last_col);
+    double cx, sx;
+    second_iter(A, p_k1, p_k2, alpha_last, beta_last, zeta, cx, sx, v_this, v_last, last_col);
+    x += r.norm()*cx*p_k2;
 
-    x += zeta*p_k1;
     if (small(beta_last)) return;
     std::cout << "\n-\n" << x << "\n-\n";
-
-    for (int j = 2; j < 10; ++j) {
+    VectorXd last = zeta*p_k1;
+    for (int j = 2; j < 30; ++j) {
 
         VectorXd z = A*v_this - beta_last*v_last;
         alpha_this = v_this.dot(z);
@@ -104,11 +108,15 @@ void qr_d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
         p_k = v_this - last_col(1)*p_k1 - last_col(0)*p_k2;
         p_k /= last_col(2);
 
-        zeta *= s/c;
+
         std::cout << "\n-\n";
         std::cout << x;
         std::cout << "-\n";
-        x += zeta*p_k;
+        zeta *= s;
+        x += c*last;
+
+        //x += zeta * p_k;
+        last = zeta * p_k;
 
         last_col(0) = -s*beta_this;
         last_col(1) =  c*beta_this;
