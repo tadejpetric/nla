@@ -36,15 +36,14 @@ void first_iter(smatrix& A, VectorXd& p, double& alpha, double& beta, VectorXd& 
 void second_iter(smatrix& A,
                  VectorXd& p_this,
                  VectorXd& p_last,
-                 double& alpha, double& beta, double& zeta, double& cx, double& sx,
+                 double& alpha, double& beta, double& zeta,
                  VectorXd& v_this,
                  VectorXd& v_last,
                  Vector3d& col) {
 
     VectorXd z = A*v_this - beta*v_last;
     auto [c, s] = givens(alpha, beta);
-    cx = c;
-    sx = s;
+
     alpha = v_this.dot(z);
     z = z - alpha*v_this;
 
@@ -81,16 +80,15 @@ void qr_d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
 
     // compute first manually
     first_iter(A, p_k2, alpha_last, beta_last, v_this, v_last);
-
+    x += zeta*p_k2;
     if (small(beta_last)) return;
     std::cout << x;
-    double cx, sx;
-    second_iter(A, p_k1, p_k2, alpha_last, beta_last, zeta, cx, sx, v_this, v_last, last_col);
-    x += r.norm()*cx*p_k2;
+    second_iter(A, p_k1, p_k2, alpha_last, beta_last, zeta, v_this, v_last, last_col);
 
+    x += zeta*p_k1;
     if (small(beta_last)) return;
     std::cout << "\n-\n" << x << "\n-\n";
-    VectorXd last = zeta*p_k1;
+
     for (int j = 2; j < 30; ++j) {
 
         VectorXd z = A*v_this - beta_last*v_last;
@@ -113,10 +111,7 @@ void qr_d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
         std::cout << x;
         std::cout << "-\n";
         zeta *= s;
-        x += c*last;
-
-        //x += zeta * p_k;
-        last = zeta * p_k;
+        x += zeta *  p_k;
 
         last_col(0) = -s*beta_this;
         last_col(1) =  c*beta_this;
@@ -125,6 +120,8 @@ void qr_d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
 
         v_last = v_this;
         v_this = z/beta_this;
+        p_k2 = p_k1;
+        p_k1 = p_k;
     }
 }
 
