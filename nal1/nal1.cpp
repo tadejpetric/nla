@@ -79,10 +79,10 @@ void solve_system(smatrix& mat, vec& x, vec& b){
 }
 
 int main() {
-    const int n = 600;
+    const int n = 101;
 
 
-    area omega(n, 600);
+    area omega(n, 100);
     smatrix mat(n*n,n*n);
 
     VectorXd b(n*n);

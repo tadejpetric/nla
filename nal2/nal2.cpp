@@ -21,18 +21,6 @@ bool small(double x) {
 }
 
 
-void first_iter(smatrix& A, VectorXd& p, double& alpha, double& beta, VectorXd& v_this, VectorXd& v_last) {
-    VectorXd z = A*v_this;
-    alpha = v_this.dot(z);
-    z = z - alpha*v_this;
-
-    beta = z.norm();
-    p = v_this/alpha;
-
-    v_last = v_this;
-    v_this = z/beta;
-}
-
 void second_iter(smatrix& A,
                  VectorXd& p_this,
                  VectorXd& p_last,
@@ -41,22 +29,7 @@ void second_iter(smatrix& A,
                  VectorXd& v_last,
                  Vector3d& col) {
 
-    VectorXd z = A*v_this - beta*v_last;
-    auto [c, s] = givens(alpha, beta);
 
-    alpha = v_this.dot(z);
-    z = z - alpha*v_this;
-
-    p_this = v_this - p_last*(c*beta - s*alpha);
-    p_this /= (s*beta + c*alpha);
-    alpha = s*beta + c*alpha;
-
-    beta = z.norm();
-
-    zeta *= s;
-
-    col(0) = -s*beta;
-    col(1) =  c*beta;
 }
 
 
@@ -72,56 +45,85 @@ void qr_d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
     double alpha_last, beta_last;
     double alpha_this, beta_this;
     double zeta = r.norm();
-    double chi;
 
 
     Vector3d last_col = Vector3d::Zero();
 
 
     // compute first manually
-    first_iter(A, p_k2, alpha_last, beta_last, v_this, v_last);
-    x += zeta*p_k2;
-    if (small(beta_last)) return;
-    std::cout << x;
-    second_iter(A, p_k1, p_k2, alpha_last, beta_last, zeta, v_this, v_last, last_col);
+    VectorXd z = A*v_this;
+    alpha_last = v_this.dot(z);
+    z = z - alpha_last*v_this;
 
-    x += zeta*p_k1;
+    beta_last = z.norm();
+    p_k2 = v_this/alpha_last;
+
+    v_last = v_this;
+    v_this = z/beta_last;
+
+
+
+    if (small(beta_last)) return;
+
+    // compute second manually
+    z = A*v_this - beta_last*v_last;
+    auto [c, s] = givens(alpha_last, beta_last);
+
+    x += c*zeta*p_k2;
+    alpha_last = v_this.dot(z);
+    z = z - alpha_last*v_this;
+
+    p_k1 = v_this - p_k2*(c*beta_last - s*alpha_last);
+    p_k1 /= (s*beta_last + c*alpha_last);
+    alpha_last = s*beta_last + c*alpha_last;
+
+    beta_last = z.norm();
+
+    zeta *= s;
+
+    last_col(0) = -s*beta_last;
+    last_col(1) =  c*beta_last;
+
+
+
     if (small(beta_last)) return;
     std::cout << "\n-\n" << x << "\n-\n";
 
     for (int j = 2; j < 30; ++j) {
 
-        VectorXd z = A*v_this - beta_last*v_last;
+        z = A*v_this - beta_last*v_last;
         alpha_this = v_this.dot(z);
         z = z - alpha_this*v_this;
         beta_this = z.norm();
 
-        auto [c, s] = givens(alpha_last, beta_last);
+        auto [ci, si] = givens(alpha_last, beta_last);
 
-        last_col(2) = s*last_col(1) + c*alpha_this;
-        last_col(1) = c*last_col(1) - s*alpha_this;
+        std::cout << x << "\n\n";
 
-        alpha_last = c*beta_last + s*alpha_this;
+        last_col(2) = si * last_col(1) + ci * alpha_this; // f~
+        last_col(1) = ci * last_col(1) - si * alpha_this;
+
+        alpha_last = ci * beta_last + si * alpha_this;
+
 
         p_k = v_this - last_col(1)*p_k1 - last_col(0)*p_k2;
         p_k /= last_col(2);
 
+        x += ci * zeta * p_k;
+        zeta *= si;
 
-        std::cout << "\n-\n";
-        std::cout << x;
-        std::cout << "-\n";
-        zeta *= s;
-        x += zeta *  p_k;
 
-        last_col(0) = -s*beta_this;
-        last_col(1) =  c*beta_this;
+        last_col(0) = -si * beta_this;
+        last_col(1) = ci * beta_this;
 
         if (small(beta_this)) break;
 
         v_last = v_this;
         v_this = z/beta_this;
+
         p_k2 = p_k1;
         p_k1 = p_k;
+        beta_last = beta_this;
     }
 }
 

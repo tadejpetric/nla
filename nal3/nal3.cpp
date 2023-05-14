@@ -170,7 +170,7 @@ void gridgena(std::string location) {
     smatrix mat;
 
     Eigen::loadMarket(mat, location+"gridgena.mtx");
-    VectorXd b = mat.col(0).transpose();
+    VectorXd b = mat.col(0);
     solvers<smatrix, VectorXd> S(mat, b);
 
     std::cout << "\n-------------gridgena-------------\n\n";
