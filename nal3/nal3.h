@@ -10,7 +10,7 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/SparseExtra>
 #include <cmath>
-
+#include <chrono>
 
 typedef Eigen::SparseMatrix<double> smatrix;
 
@@ -34,5 +34,16 @@ void readb(VectorXd& b, std::string file) {
     in.close();
 }
 
+
+std::chrono::time_point<std::chrono::high_resolution_clock> start() {
+    return std::chrono::high_resolution_clock::now();
+}
+
+void stop(std::chrono::time_point<std::chrono::high_resolution_clock> t) {
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration;
+    duration<double> delta = high_resolution_clock::now() - t;
+    std::cout << "duration: " << delta.count() << "s\n";
+}
 
 #endif //NLA_NAL3_H

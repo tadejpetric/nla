@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(nla)
 
 set(CMAKE_CXX_STANDARD 20)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -fopenmp -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -fopenmp -O3")
 
 include_directories("/home/user/programming/eigen")
 set(EIGEN_DIR "/home/user/programming/eigen")

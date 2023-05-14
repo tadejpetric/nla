@@ -5,6 +5,9 @@
 #ifndef NLA_NAL1_H
 #define NLA_NAL1_H
 #include <cmath>
+#include <chrono>
+#include <iostream>
+
 struct area {
     const int divisions;
     const int k;
@@ -17,7 +20,7 @@ struct area {
 
     area(const int divisions, const int k) : divisions(divisions),
                                              k(k),
-                                             step_width2(4./((divisions-1)*(divisions-1))) {}
+                                             step_width2(4./((divisions+1)*(divisions+1))) {}
 
     double itoc(const int i) const {
         return (i+1)*2./(divisions+1) -1;
@@ -38,6 +41,18 @@ struct area {
     }
 
 };
+
+std::chrono::time_point<std::chrono::high_resolution_clock> start() {
+    return std::chrono::high_resolution_clock::now();
+}
+
+void stop(std::chrono::time_point<std::chrono::high_resolution_clock> t) {
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration;
+    duration<double> delta = high_resolution_clock::now() - t;
+    std::cout << "duration: " << delta.count() << "s\n";
+}
+
 
 
 #endif //NLA_NAL1_H
