@@ -3,9 +3,18 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{graphicx}
+\usepackage{hyperref}
 
 \begin{document}
+\author{Tadej Petrič}
+\title{imnla dn}
+\maketitle
 Naloge sem reševal samostojno. Reševal sem v C++ z Eigen knjižnico za linearno algebro, 3D ploti za poročilo prve naloge pa so v pythonu (zato ker uporabljam linux in knjižnice za izrisovanje pogosto ne delujejo na Windowsu brez veliko dela, tako da bi vi imeli težave pri poganjanju kode), ampak je samo klic surface\_plot() matrike, ki sem jo v C++ shranil v datoteko. Podobno sem python uporabil za pretvorbo .mat datoteke za 4. nalogo v .mtx format, ki ga lahko bere Eigen - že pretvorjene matrike prilagam. Slike so malo grdo razporejene po poročilu, ker imajo veliko belega prostora - če piše "Figure \(n\)" spadajo k prvi nalogi.
+
+Datoteke se nahajajo v \url{https://drive.google.com/file/d/1Ol8bcOQcKSPhhljzpvcTBuyy1r5-WYz1/view?usp=share_link}
+Rešitve se nahajajo v \url{https://drive.google.com/file/d/10EhI3-JQRvuCHleHhmxTJcJDZ70lG9xX/view?usp=share_link} ali na github repozitoriju \url{https://github.com/tadejpetric/nla}
+
+Vsi programi delajo na mojem računalniku (razen kjer rečeno eksplicitno). Da koda deluje je potrebno le nastaviti "include\_directories" v CMakeLists na lokacijo Eigna ter pognati cmake (lahko se tudi odstrani -fopenmp v flagsih, kar izklopi multithreading ampak verjetno bolje dela na Windows). Če imate datoteke shranjene v drugačni strukturi map je potrebno spreminjati tudi location (npr pri nalogi 3). Pri nalogi 4 pa deluje, če poganjate iz iste datoteke (klic \verb|nal4.exe| po compilu) ali pa iz druge datoteke (klic \verb|nal4.exe /home/user/programming/nla/nal4/| oziroma pot do tam kjer je shranjena train.mtx in test.mtx - v retrospektivi bi moral tako naresti tudi tretjo nalogo ampak navodila za namestitev pišem prepozno).
 
 \section{Naloga 1}
     Naj bo \(U(x,y) = U_{x,y}\) matrika
@@ -22,7 +31,7 @@ Naloge sem reševal samostojno. Reševal sem v C++ z Eigen knjižnico za linearn
     \end{align*}
     Vemo, da je \(U(i,j)=0\) na \(\partial [-1,1]^2\) oziroma \(\{0,n\}\times [0,n]\) in obratno. V matriki za relacije računamo ostale vrednosti.
     
-    Problem preuredimo v enačbo \(Ax=b\) kjer je \(x\) \(n\cdot n\) vektor, ki predstavlja rešitev \(u(i,j) = x_{n*i+j}\). Relacije od zgoraj sestavimo v matriko; stran \(b\) je kar \(h^2\) v vseh komponentah. Diagonalni elementi so ponavadi \(4\), razen ko upoštevamo kaznovalni parameter \(k\).
+    Problem preuredimo v enačbo \(Ax=b\) kjer je \(x\) \(n\cdot n\) vektor, ki predstavlja rešitev \(u(i,j) = x_{n\cdot i+j}\). Relacije od zgoraj sestavimo v matriko; stran \(b\) je kar \(h^2\) v vseh komponentah. Diagonalni elementi so ponavadi \(4\), razen ko upoštevamo kaznovalni parameter \(k\).
 
     \begin{figure}[h!]
         \centering
@@ -119,13 +128,13 @@ Naloge sem reševal samostojno. Reševal sem v C++ z Eigen knjižnico za linearn
     \end{align*}
     Torej je \(\zeta_k = s\cdot \zeta_{k-1}'\). Vendar pa se v zaradi Givensove rotacije spremeni tudi \(\zeta_{k-1} = c\cdot \zeta_{k-1}'\).
 
-    Podobno analizo delamo pri \(R_k\). Vemo, da je pri QR razcepu od tridiagonalne matrike \(R\) zgornja trikotna matrika z le tremi neničelnimi naddiagonalami, torej lahko element \(p_k\) napišemo kot \(p_k = (v_k - \lambda_0 p_{k-2} - \lambda_1 p_{k-1})/\lambda_2\), kjer je \(\lambda_2\) diagonalni element matrike v zadnjem stolpcu, \(\lambda_1\) naddiagonalni in \(\lambda_2\) nad naddiagonalnim. Tukaj je spet potrebno popravljati koeficient še v naslednji iteraciji, saj ga naslednja givensova rotacija spremeni, vendar lahko to poskrbimo brez da hranimo dodatni vektor (hranimo le koeficiente in givensove rotacije, kar je poceni). Potrebno je torej hraniti \(p_k\), \(p_{k-1}\), \(p_{k-2}\), \(A\), \(x\), \(b\) in konstantno mnogo številskih parametrov.
+    Podobno analizo delamo pri \(R_k\). Vemo, da je pri QR razcepu od tridiagonalne matrike \(R\) zgornja trikotna matrika z le tremi neničelnimi naddiagonalami, torej lahko element \(p_k\) napišemo kot \(p_k = (v_k - \lambda_0 p_{k-2} - \lambda_1 p_{k-1})/\lambda_2\), kjer je \(\lambda_2\) diagonalni element matrike v zadnjem stolpcu, \(\lambda_1\) naddiagonalni in \(\lambda_2\) nad naddiagonalnim. Tukaj je spet potrebno popravljati koeficient še v naslednji iteraciji, saj ga naslednja givensova rotacija spremeni, vendar lahko to poskrbimo brez da hranimo dodatni vektor (hranimo le koeficiente in givensove rotacije, kar je poceni). Potrebno je torej hraniti \(p_k\), \(p_{k-1}\), \(p_{k-2}\), \(v_this\), \(v_last\), \(A\), \(x\), \(b\) in konstantno mnogo številskih parametrov.
 
     Moja implementirana metoda ne deluje, ker sem se jo lotil pisati nespametno ter potem raje reševal druge naloge, osnutek je pa končan v kodi (do permutacije vrstic natančno, saj bi bilo treba pravilno upoštevati rotacije).
 
 
     \section{Naloga 3}
-    Vse metode uporabljamo z toleranco 1e-6 in maksimalnim številom korakov 500. Izhod programa je priložen v datoteki \verb|output.txt| (saj se sicer izvaja precej dolgo časa). namesto nekaterih Matlabovih metod sem uporabil ostale Eigen iterativne metode (idrs, idrstabl, idrstab, bicgstabl).
+    Vse metode uporabljamo z toleranco 1e-6 in maksimalnim številom korakov 500. Izhod programa je priložen v datoteki \verb|output.txt| (saj se sicer izvaja precej dolgo časa). Namesto nekaterih (neimplementiranih v knjižnici) Matlabovih metod sem uporabil ostale Eigen iterativne metode (idrs, idrstabl, idrstab, bicgstabl).
     
     Najlepša matrika je gridgena. Na njej delujejo vse metode, saj je simetrična in SPD. Uporabimo lahko tudi dobro predpogovjevanje, saj je cholesky razgradljiva. Še posebej uporabne so metode idrstabl, bicgstabl in gmres s predpogojevanjem choleskega. Zaradi izjemno hitre konvergence (v le 15 iteracijah) parameter ponovnega zagona nima velikega vpliva. Predpogojevanje pomaga mnogim metodam: metodi minres, idrs, idrstabl in bistab delajo najboljebolje z diagonalnim predpogojevanjem; gmres, cg pa s predpogojevanjem choleskega. Idrstabl z diagonalnim predpogojevanjem deluje hitreje kot metoda SparseLU.
 
