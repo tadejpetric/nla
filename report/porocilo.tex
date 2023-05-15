@@ -2,8 +2,10 @@
 \usepackage{amsmath}
 \usepackage{tikz}
 \usepackage{pgfplots}
+\usepackage{graphicx}
 
 \begin{document}
+\section{Naloga 1}
     Naj bo \(U(x,y) = U_{x,y}\) matrika
     \begin{align*}
         \Delta u(x,y) = U_{xx} + U_{yy}\\
@@ -13,15 +15,82 @@
     \end{align*}
     Če to damo skupaj, dobimo
     \begin{align*}
-        \Delta U(x,y) + k(x,y)U(x,y) = 1\
+        \Delta U(x,y) + k(x,y)U(x,y) = 1\\
         h^2 = U(x-1,y)+U(x+1,y)+U(x,y-1)+U(x,y+1) + (h^2\cdot k(x,y)- 4) U(x,y)
     \end{align*}
-    Vemo, da je \(U(i,j)=0\) na \(\partial [-1,1]^2\) oziroma \(\{0,n\}\times [0,n]\) in obratno.
-    \section{Naloga 4}
+    Vemo, da je \(U(i,j)=0\) na \(\partial [-1,1]^2\) oziroma \(\{0,n\}\times [0,n]\) in obratno. V matriki za relacije računamo ostale vrednosti.
+    
+    Problem preuredimo v enačbo \(Ax=b\) kjer je \(x\) \(n\cdot n\) vektor, ki predstavlja rešitev \(u(i,j) = x_{n*i+j}\). Relacije od zgoraj sestavimo v matriko; stran \(b\) je kar \(h^2\) v vseh komponentah. Diagonalni elementi so ponavadi \(4\), razen ko upoštevamo kaznovalni parameter \(k\)
 
-    Iters
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n20_k50.png}
+        \caption{n 20, k 50}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n20_k500.png}
+        \caption{n 20, k 500}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n101_k100.png}
+        \caption{n 101, k 100}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n101_k1000.png}
+        \caption{n 101, k 1000}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n200_k300.png}
+        \caption{n 200, k 300}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n301_k50.png}
+        \caption{n 301, k 50}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n301_k1000.png}
+        \caption{n 301, k 1000}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n600_k100000.png}
+        \caption{n 600, k 100000}
+    \end{figure}
+
+    Kaznovalni parameter poskrbi, da so vrednosti na krogu približno enake 0, saj dobimo enačbo oblike \(k\cdot u = 1- \Delta \), kar je približno \(h^2 k u = O(u)\). Torej, da poskrbimo, da je \(u\) majhen, more biti \(h^2k>>0\)
+    % še enkrat n=101 k=1000
+    \section{Naloga 2}
+
+    \section{Naloga 3}
+    Vse metode uporabljamo z toleranco 1e-6 in maksimalnim številom korakov 500.
+    
+    Najlepša matrika je gridgena. Na njej delujejo vse metode, saj je simetrična in SPD. Uporabimo lahko tudi dobro predpogovjevanje, saj je cholesky razgradljiva.
+
+
+    \section{Naloga 4}
+    Da določimo optimalen \(\alpha\) poženemo algoritem za različne \(\alpha\) s privzeto toleranco (okoli 1e-15). Spremljamo, koliko korakov je bilo potrebnih za konvergenco. Nato preverimo odstopanje rešitve od neregularizirane rešitve.
+
+
     \begin{tikzpicture}
-        \begin{axis}
+        \centering
+        \begin{axis}[
+            axis lines = left,
+            xlabel = {\(\alpha\)},
+            ylabel = {Iterations}
+        ]
         \addplot coordinates {
                 (0.010101, 867)
                 (0.020202, 616)
@@ -126,9 +195,15 @@
         \end{axis}
     \end{tikzpicture}
 
-    Alphas
+
+
     \begin{tikzpicture}
-        \begin{axis}
+        \centering
+        \begin{axis}[
+            axis lines = left,
+            xlabel = {\(\alpha\)},
+            ylabel = {\(\lVert AA^\top x - b\rVert\)}
+        ]
         \addplot coordinates {
             (0.010101, 0.458222)
 (0.020202, 0.460376)
@@ -233,4 +308,7 @@
         \end{axis}
     \end{tikzpicture}
 
+    Iz grafa razberemo, da je za vrednost \(\alpha=0.6\) rešitev zelo blizu dejanske rešitve, število iteracij pa zadovoljivo nizko. Računamo matriko \(X^\top A^{-1} X\). Zaradi učinkovitosti v spomin shranimo le en stolpec končnega rezultata na enkrat in ga shranimo v datoteko (column major format, tako da izgleda, kot da shranimo transponiranko).
+    
+    Računanja stolpca \(i\) se lotimo tako, da preslikamo \(e_i\) z \(X\), kar nam da \(x_i\). Nato rešimo sistem \(Ay = x_i\) z metodo konjugiranih gradientov. Rešitev \(y\) preslikamo z \(X\), da dobimo \(i\)-ti stolpec končne matrike.
 \end{document}
