@@ -20,7 +20,7 @@
     \end{align*}
     Vemo, da je \(U(i,j)=0\) na \(\partial [-1,1]^2\) oziroma \(\{0,n\}\times [0,n]\) in obratno. V matriki za relacije računamo ostale vrednosti.
     
-    Problem preuredimo v enačbo \(Ax=b\) kjer je \(x\) \(n\cdot n\) vektor, ki predstavlja rešitev \(u(i,j) = x_{n*i+j}\). Relacije od zgoraj sestavimo v matriko; stran \(b\) je kar \(h^2\) v vseh komponentah. Diagonalni elementi so ponavadi \(4\), razen ko upoštevamo kaznovalni parameter \(k\)
+    Problem preuredimo v enačbo \(Ax=b\) kjer je \(x\) \(n\cdot n\) vektor, ki predstavlja rešitev \(u(i,j) = x_{n*i+j}\). Relacije od zgoraj sestavimo v matriko; stran \(b\) je kar \(h^2\) v vseh komponentah. Diagonalni elementi so ponavadi \(4\), razen ko upoštevamo kaznovalni parameter \(k\).
 
     \begin{figure}[h]
         \centering
@@ -66,18 +66,64 @@
 
     \begin{figure}[h]
         \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n301_k1e6.png}
+        \caption{n 301, k 1 000 000}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n301_k1e9.png}
+        \caption{n 301, k 1 000 000 000}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n301_k1000.png}
+        \caption{n 301, k 1000}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
         \includegraphics[width=0.9\textwidth]{nal1_n600_k100000.png}
         \caption{n 600, k 100000}
     \end{figure}
 
-    Kaznovalni parameter poskrbi, da so vrednosti na krogu približno enake 0, saj dobimo enačbo oblike \(k\cdot u = 1- \Delta \), kar je približno \(h^2 k u = O(u)\). Torej, da poskrbimo, da je \(u\) majhen, more biti \(h^2k>>0\)
-    % še enkrat n=101 k=1000
+    Kaznovalni parameter poskrbi, da so vrednosti na krogu približno enake 0, saj dobimo enačbo oblike \(k\cdot u = 1- \Delta \), kar je približno \(h^2 k u = O(u)\). Torej, da poskrbimo, da je \(u\) majhen, more biti \(h^2k>>0\). To lahko naredimo tako, da (neoptimalno) uporabimo \(k\approx n^3\) ali pa \(k\approx C\cdot n^2\).
+
+    Višji kot je \(k\) boljši približek dobimo. Če je ta dovolj velik (kot v prejšnjih ocenah) je matrika šibko diagonalno dominantna (in nerazcepna) in lahko uporabimo iterativno metodo. Za dan problem dobro deluje Jacobijeva metoda, ki konvergira. 
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nal1_n600_k100000.png}
+        \caption{n 301, k 1e6, Jacobi s 3000 iteracij}
+    \end{figure}
+
+    
     \section{Naloga 2}
+    Nedokončana. V datoteki spišem D-Lanczos algoritem z LU razcepom in ga uporabim, da popravim na QR razcep. 
+
+    Vemo, da je pri QR razcepu od tridiagonalne matrike \(R\) zgornja trikotna matrika z le tremi neničelnimi naddiagonalami. Če pišemo torej podobno izpeljavo kot za LU D-Lanczos, vidimo
+    \begin{align*}
+        x_k = x_0 + V_kT_k^{-1}\lVert r_0\rVert e_1\\
+        x_0 + V_k R_k^{-1} Q_k^\top \lVert r_0 \rVert e_1\\
+        P_k R_k= V_k\\
+        z_k = Q_k^\top \lVert r_0 \rVert e_1
+    \end{align*}
+
+    %\begin{bmatrix}
+    %    T
+    %\end{bmatrix}
 
     \section{Naloga 3}
-    Vse metode uporabljamo z toleranco 1e-6 in maksimalnim številom korakov 500.
+    Vse metode uporabljamo z toleranco 1e-6 in maksimalnim številom korakov 500. Izhod programa je priložen v datoteki \verb|output.txt| (saj se sicer izvaja precej dolgo časa). namesto nekaterih Matlabovih metod sem uporabil ostale Eigen iterativne metode (idrs, idrstabl, idrstab, bicgstabl).
     
-    Najlepša matrika je gridgena. Na njej delujejo vse metode, saj je simetrična in SPD. Uporabimo lahko tudi dobro predpogovjevanje, saj je cholesky razgradljiva.
+    Najlepša matrika je gridgena. Na njej delujejo vse metode, saj je simetrična in SPD. Uporabimo lahko tudi dobro predpogovjevanje, saj je cholesky razgradljiva. Še posebej uporabne so metode idrstabl, bicgstabl in gmres s predpogojevanjem choleskega. Zaradi izjemno hitre konvergence (v le 15 iteracijah) parameter ponovnega zagona nima velikega vpliva. Predpogojevanje pomaga mnogim metodam: metodi minres, idrs, idrstabl in bistab delajo najboljebolje z diagonalnim predpogojevanjem; gmres, cg pa s predpogojevanjem choleskega. Idrstabl z diagonalnim predpogojevanjem deluje hitreje kot metoda SparseLU.
+
+    Slabše se obnaša c-63. Je sicer simetrična, ni pa pozitivno definitna ali Cholesky razgradljiva. Metode s privzetimi nastavitvami so počasne. Najbolje delata idrstabl in bicgstabl, sprejemljivo pa kovnergira tudi gmres brez ponovnega zagona, kjer potrebuje 254 iteracij z 64 restart in 103 iteracij brez ponovnega zagona. Za manjše vrednosti restarta ne konvergira znotraj 500 iteracij. Če dodamo diagonalno predpogojevanje se konvergenca veliko pospeši. Zelo dobro delajo vse metode (razen minres zaradi tehničnih razlogov). Če uporabimo predpogojevanja lahko tudi rešimo hitreje kot SparseLU z vsemi metodami.
+
+    RFDevice ima za \(b\) matriko z devetimi stolpci. Stolpca \(0\) in \(4\) sta slabša od ostalih, za njiju ne deluje dobro nobena iterativna metoda. Pri ostalih stolpcih gmres prez predpogojevanja pride do rešitve v petih korakih. Sprejemljive metode so tudi bicgstab in idrs in idrstabl. Predpogojevanja le poslabšajo rezultate.
+
+
 
 
     \section{Naloga 4}
@@ -194,8 +240,6 @@
             };
         \end{axis}
     \end{tikzpicture}
-
-
 
     \begin{tikzpicture}
         \centering

@@ -140,7 +140,7 @@ void c63(std::string& location) {
     S.bicgstab();
     std::cout << "bicgstab (err " << S.error << ", iter " << S.steps << ")\n";
     S.bicgstab<Eigen::DiagonalPreconditioner<double>>();
-    std::cout << "bicgstab precond (err " << S.error << ", iter " << S.steps << ")\n";
+    std::cout << "bicgstab diag precond (err " << S.error << ", iter " << S.steps << ")\n";
 
     S.bicgstabl();
     std::cout << "bicgstabl (err " << S.error << ", iter " << S.steps << ")\n";
