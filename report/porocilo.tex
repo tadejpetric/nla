@@ -5,6 +5,8 @@
 \usepackage{graphicx}
 
 \begin{document}
+Naloge sem reševal samostojno. Reševal sem v C++ z Eigen knjižnico za linearno algebro, 3D ploti za poročilo prve naloge pa so v pythonu (zato ker uporabljam linux in knjižnice za izrisovanje pogosto ne delujejo na Windowsu brez veliko dela, tako da bi vi imeli težave pri poganjanju kode), ampak je samo klic surface\_plot() matrike, ki sem jo v C++ shranil v datoteko. Podobno sem python uporabil za pretvorbo .mat datoteke za 4. nalogo v .mtx format, ki ga lahko bere Eigen - že pretvorjene matrike prilagam. Slike so malo grdo razporejene po poročilu, ker imajo veliko belega prostora - če piše "Figure \(n\)" spadajo k prvi nalogi.
+
 \section{Naloga 1}
     Naj bo \(U(x,y) = U_{x,y}\) matrika
     \begin{align*}
@@ -22,19 +24,19 @@
     
     Problem preuredimo v enačbo \(Ax=b\) kjer je \(x\) \(n\cdot n\) vektor, ki predstavlja rešitev \(u(i,j) = x_{n*i+j}\). Relacije od zgoraj sestavimo v matriko; stran \(b\) je kar \(h^2\) v vseh komponentah. Diagonalni elementi so ponavadi \(4\), razen ko upoštevamo kaznovalni parameter \(k\).
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \includegraphics[width=0.9\textwidth]{nal1_n20_k50.png}
         \caption{n 20, k 50}
     \end{figure}
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \includegraphics[width=0.9\textwidth]{nal1_n20_k500.png}
         \caption{n 20, k 500}
     \end{figure}
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \includegraphics[width=0.9\textwidth]{nal1_n101_k100.png}
         \caption{n 101, k 100}
@@ -88,9 +90,11 @@
         \caption{n 600, k 100000}
     \end{figure}
 
+    Višji kot je \(n\), boljšo rešitev dobimo, saj vzorčimo bolj drobne delce (in teoretična izpeljava deluje le, ko gre \(n\to \infty\)). Do numeričnih težav ne pride za smiselne vrednosti \(n\) (na primer pod nekaj tisoč), če bi pa pretiravali bi pa lahko prišlo do težav.
+
     Kaznovalni parameter poskrbi, da so vrednosti na krogu približno enake 0, saj dobimo enačbo oblike \(k\cdot u = 1- \Delta \), kar je približno \(h^2 k u = O(u)\). Torej, da poskrbimo, da je \(u\) majhen, more biti \(h^2k>>0\). To lahko naredimo tako, da (neoptimalno) uporabimo \(k\approx n^3\) ali pa \(k\approx C\cdot n^2\).
 
-    Višji kot je \(k\) boljši približek dobimo. Če je ta dovolj velik (kot v prejšnjih ocenah) je matrika šibko diagonalno dominantna (in nerazcepna) in lahko uporabimo iterativno metodo. Za dan problem dobro deluje Jacobijeva metoda, ki konvergira. 
+    Višji kot je \(k\) boljši približek dobimo (lahko uporabimo tudi \(k=\infty\), vendar je teoretična analiza potem nerodna). Če je ta dovolj velik (kot v prejšnjih ocenah) je matrika šibko diagonalno dominantna (in nerazcepna) in lahko uporabimo iterativno metodo. Za dan problem dobro deluje Jacobijeva metoda, ki konvergira. 
 
     \begin{figure}[h]
         \centering
@@ -100,19 +104,25 @@
 
     
     \section{Naloga 2}
-    Nedokončana. V datoteki spišem D-Lanczos algoritem z LU razcepom in ga uporabim, da popravim na QR razcep. 
+    Nedokončana. V datoteki spišem D-Lanczos algoritem (ki deluje) z LU razcepom in ga uporabim, da popravim na QR razcep. 
 
-    Vemo, da je pri QR razcepu od tridiagonalne matrike \(R\) zgornja trikotna matrika z le tremi neničelnimi naddiagonalami. Če pišemo torej podobno izpeljavo kot za LU D-Lanczos, vidimo
+    Če pišemo podobno izpeljavo kot za LU D-Lanczos, vidimo
     \begin{align*}
         x_k = x_0 + V_kT_k^{-1}\lVert r_0\rVert e_1\\
         x_0 + V_k R_k^{-1} Q_k^\top \lVert r_0 \rVert e_1\\
         P_k R_k= V_k\\
         z_k = Q_k^\top \lVert r_0 \rVert e_1
     \end{align*}
+    Če napišemo \(Q_k\) kot \(G_1^\top \cdots G_k^\top\) (kjer so \(G_i\) Givensove rotacije) dobimo zadnjo vrstico
+    \begin{align*}
+        Q_k^\top = G_k \cdots G_1
+    \end{align*}
+    Torej je \(\zeta_k = s\cdot \zeta_{k-1}'\). Vendar pa se v zaradi Givensove rotacije spremeni tudi \(\zeta_{k-1} = c\cdot \zeta_{k-1}'\).
 
-    %\begin{bmatrix}
-    %    T
-    %\end{bmatrix}
+    Podobno analizo delamo pri \(R_k\). Vemo, da je pri QR razcepu od tridiagonalne matrike \(R\) zgornja trikotna matrika z le tremi neničelnimi naddiagonalami, torej lahko element \(p_k\) napišemo kot \(p_k = (v_k - \lambda_0 p_{k-2} - \lambda_1 p_{k-1})/\lambda_2\), kjer je \(\lambda_2\) diagonalni element matrike v zadnjem stolpcu, \(\lambda_1\) naddiagonalni in \(\lambda_2\) nad naddiagonalnim. Tukaj je spet potrebno popravljati koeficient še v naslednji iteraciji, saj ga naslednja givensova rotacija spremeni, vendar lahko to poskrbimo brez da hranimo dodatni vektor (hranimo le koeficiente in givensove rotacije, kar je poceni). Potrebno je torej hraniti \(p_k\), \(p_{k-1}\), \(p_{k-2}\), \(A\), \(x\), \(b\) in konstantno mnogo številskih parametrov.
+
+    Moja implementirana metoda ne deluje, ker sem se jo lotil pisati nespametno ter potem raje reševal druge naloge, osnutek je pa končan v kodi (do permutacije vrstic natančno, saj bi bilo treba pravilno upoštevati rotacije).
+
 
     \section{Naloga 3}
     Vse metode uporabljamo z toleranco 1e-6 in maksimalnim številom korakov 500. Izhod programa je priložen v datoteki \verb|output.txt| (saj se sicer izvaja precej dolgo časa). namesto nekaterih Matlabovih metod sem uporabil ostale Eigen iterativne metode (idrs, idrstabl, idrstab, bicgstabl).

@@ -21,16 +21,6 @@ bool small(double x) {
 }
 
 
-void second_iter(smatrix& A,
-                 VectorXd& p_this,
-                 VectorXd& p_last,
-                 double& alpha, double& beta, double& zeta,
-                 VectorXd& v_this,
-                 VectorXd& v_last,
-                 Vector3d& col) {
-
-
-}
 
 
 void qr_d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
@@ -129,10 +119,10 @@ void qr_d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
 
 
 void d_lanczos(smatrix& A, VectorXd& x, VectorXd& b) {
-    VectorXd r = b - A*x;
+    auto r = b - A*x; // don't have to save it. Auto doesn't compute it, solves the abstract expression
     VectorXd v_this = r / r.norm();
-    VectorXd v_last = VectorXd::Zero(r.size());
-    VectorXd p = VectorXd::Zero(r.size());
+    VectorXd v_last = VectorXd::Zero(v_this.size());
+    VectorXd p = VectorXd::Zero(v_this.size());
     double beta_this;
     double beta_last = 0;
     double zeta = r.norm();

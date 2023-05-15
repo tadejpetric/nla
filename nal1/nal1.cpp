@@ -79,10 +79,10 @@ void solve_system(smatrix& mat, vec& x, vec& b){
 }
 
 int main() {
-    const int n = 600;
+    const int n = 300;
 
 
-    area omega(n, 1e12);
+    area omega(n, 1e9); // std::numeric_limits<double>::infinity());
     smatrix mat(n*n,n*n);
 
     VectorXd b(n*n);
@@ -101,6 +101,7 @@ int main() {
         }
     }
      */
+
     mat.makeCompressed();
     VectorXd x(n*n);
 
@@ -113,6 +114,7 @@ int main() {
     x2.setZero();
     gauss_jacobi(mat, x2, b, 3000);
     stop(t2);
+
 
 
 

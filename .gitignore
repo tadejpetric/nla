@@ -10,6 +10,8 @@ include
 *.mat
 *.txt
 
+*.7z
+*.zip
 *.pdf
 *.aux
 *.lof
