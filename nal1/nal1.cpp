@@ -79,10 +79,10 @@ void solve_system(smatrix& mat, vec& x, vec& b){
 }
 
 int main() {
-    const int n = 101;
+    const int n = 600;
 
 
-    area omega(n, 100);
+    area omega(n, 1e12);
     smatrix mat(n*n,n*n);
 
     VectorXd b(n*n);
@@ -92,6 +92,15 @@ int main() {
     auto p = start();
     build_matrix(mat, omega);
 
+
+    // for checking diagonal entries for jacobi iteration
+    /*
+    for (auto v : mat.diagonal()) {
+        if (v != -4) {
+            std::cout << v << "\n";
+        }
+    }
+     */
     mat.makeCompressed();
     VectorXd x(n*n);
 
@@ -102,7 +111,7 @@ int main() {
     auto t2 = start();
     VectorXd x2(n*n);
     x2.setZero();
-    gauss_seidl(mat, x2, b, 7);
+    gauss_jacobi(mat, x2, b, 3000);
     stop(t2);
 
 

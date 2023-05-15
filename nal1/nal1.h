@@ -10,7 +10,7 @@
 
 struct area {
     const int divisions;
-    const int k;
+    const double k;
 
     // step_width2 is square of step width
     // h = 2/(divisions+1). -1 because (-1,1) not [-1,1)
@@ -18,7 +18,7 @@ struct area {
     //              i = 0 -> -0.5,    i = 2 -> 0.5
     const double step_width2;
 
-    area(const int divisions, const int k) : divisions(divisions),
+    area(const int divisions, const double k) : divisions(divisions),
                                              k(k),
                                              step_width2(4./((divisions+1)*(divisions+1))) {}
 
